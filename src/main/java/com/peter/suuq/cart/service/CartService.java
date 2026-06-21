@@ -7,6 +7,7 @@ import com.peter.suuq.cart.entity.Cart;
 import com.peter.suuq.cart.entity.CartItem;
 import com.peter.suuq.cart.repository.CartItemRepository;
 import com.peter.suuq.cart.repository.CartRepository;
+import com.peter.suuq.exception.BadRequestException;
 import com.peter.suuq.exception.ResourceNotFoundException;
 import com.peter.suuq.product.entity.Product;
 import com.peter.suuq.product.repository.ProductRepository;
@@ -32,11 +33,11 @@ public class CartService {
                 .orElseThrow(() -> new ResourceNotFoundException("Product not found"));
 
         if (!product.isActive()) {
-            throw new RuntimeException("Product is no longer available");
+            throw new ResourceNotFoundException("Product is no longer available");
         }
 
         if (product.getStockQuantity() < request.getQuantity()) {
-            throw new RuntimeException("Insufficient stock");
+            throw new BadRequestException("Insufficient stock");
         }
 
         Cart cart = cartRepository.findByUserId(user.getId())

@@ -3,6 +3,8 @@ package com.peter.suuq.order.service;
 import com.peter.suuq.cart.entity.Cart;
 import com.peter.suuq.cart.entity.CartItem;
 import com.peter.suuq.cart.service.CartService;
+import com.peter.suuq.exception.AccessDeniedException;
+import com.peter.suuq.exception.BadRequestException;
 import com.peter.suuq.exception.ResourceNotFoundException;
 import com.peter.suuq.order.dto.OrderRequest;
 import com.peter.suuq.order.dto.OrderItemResponse;
@@ -31,7 +33,7 @@ public class OrderService {
         Cart cart = cartService.getCartEntity(user);
 
         if (cart.getItems().isEmpty()) {
-            throw new RuntimeException("Cannot place order with empty cart");
+            throw new BadRequestException("Cannot place order with empty cart");
         }
 
         List<OrderItem> orderItems = cart.getItems().stream()
@@ -75,7 +77,7 @@ public class OrderService {
                 .orElseThrow(() -> new ResourceNotFoundException("Order not found"));
 
         if (!order.getUser().getId().equals(user.getId())) {
-            throw new RuntimeException("Access denied");
+            throw new AccessDeniedException("Access denied");
         }
 
         return mapToResponse(order);

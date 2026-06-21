@@ -1,6 +1,9 @@
 package com.peter.suuq.payment.service;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.peter.suuq.exception.AccessDeniedException;
+import com.peter.suuq.exception.BadRequestException;
+import com.peter.suuq.exception.PaymentException;
 import com.peter.suuq.exception.ResourceNotFoundException;
 import com.peter.suuq.order.dto.OrderResponse;
 import com.peter.suuq.order.entity.Order;
@@ -39,11 +42,11 @@ public class PaymentService {
                 .orElseThrow(() -> new ResourceNotFoundException("Order not found"));
 
         if (!order.getUser().getId().equals(user.getId())) {
-            throw new RuntimeException("Access denied");
+            throw new AccessDeniedException("Access denied");
         }
 
         if (order.getStatus() != OrderStatus.PENDING) {
-            throw new RuntimeException("Order is not in a payable state");
+            throw new BadRequestException("Order is not in a payable state");
         }
 
         // Convert to kobo (Paystack expects amount in smallest currency unit)
@@ -66,7 +69,7 @@ public class PaymentService {
                 .block();
 
         if (response == null || !response.path("status").asBoolean()) {
-            throw new RuntimeException("Failed to initialize payment");
+            throw new PaymentException("Failed to initialize payment");
         }
 
         JsonNode data = response.path("data");
@@ -107,21 +110,21 @@ public class PaymentService {
                 .block();
 
         if (response == null || !response.path("status").asBoolean()) {
-            throw new RuntimeException("Failed to verify payment");
+            throw new PaymentException("Failed to verify payment");
         }
 
         JsonNode data = response.path("data");
         String status = data.path("status").asText();
 
         if (!"success".equals(status)) {
-            throw new RuntimeException("Payment not successful, status: " + status);
+            throw new PaymentException("Payment not successful, status: " + status);
         }
 
         Order order = orderRepository.findByPaystackReference(reference)
                 .orElseThrow(() -> new ResourceNotFoundException("Order not found"));
 
         if (!order.getUser().getId().equals(user.getId())) {
-            throw new RuntimeException("Access denied");
+            throw new AccessDeniedException("Access denied");
         }
 
         order.setStatus(OrderStatus.PAID);

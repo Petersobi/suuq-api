@@ -4,6 +4,8 @@ import com.peter.suuq.auth.dto.AuthResponse;
 import com.peter.suuq.auth.dto.LoginRequest;
 import com.peter.suuq.auth.dto.RegisterRequest;
 import com.peter.suuq.config.security.JwtService;
+import com.peter.suuq.exception.DuplicateResourceException;
+import com.peter.suuq.exception.ResourceNotFoundException;
 import com.peter.suuq.user.entity.Role;
 import com.peter.suuq.user.entity.User;
 import com.peter.suuq.user.repository.UserRepository;
@@ -24,7 +26,7 @@ public class AuthService {
 
     public AuthResponse register(RegisterRequest request) {
         if (userRepository.findByEmail(request.getEmail()).isPresent()) {
-            throw new RuntimeException("Email already registered");
+            throw new DuplicateResourceException("Email already registered");
         }
 
         User user = User.builder()
@@ -49,7 +51,7 @@ public class AuthService {
         );
 
         User user = userRepository.findByEmail(request.getEmail())
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
         String token = jwtService.generateToken(user);
         return new AuthResponse(token, user.getEmail(), user.getRole().name());

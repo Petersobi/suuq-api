@@ -1,5 +1,6 @@
 package com.peter.suuq.product.service;
 
+import com.peter.suuq.exception.DuplicateResourceException;
 import com.peter.suuq.exception.ResourceNotFoundException;
 import com.peter.suuq.product.dto.CategoryRequest;
 import com.peter.suuq.product.dto.ProductRequest;
@@ -23,7 +24,7 @@ public class ProductService {
 
     public Category createCategory(CategoryRequest request) {
         if (categoryRepository.findByName(request.getName()).isPresent()) {
-            throw new RuntimeException("Category already exists");
+            throw new DuplicateResourceException("Category already exists");
         }
         Category category = Category.builder()
                 .name(request.getName())
