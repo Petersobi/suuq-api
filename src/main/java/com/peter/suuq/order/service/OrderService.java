@@ -14,6 +14,7 @@ import com.peter.suuq.order.entity.OrderItem;
 import com.peter.suuq.order.entity.OrderStatus;
 import com.peter.suuq.order.repository.OrderRepository;
 import com.peter.suuq.user.entity.User;
+import com.peter.suuq.user.service.EmailService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -27,6 +28,7 @@ public class OrderService {
 
     private final OrderRepository orderRepository;
     private final CartService cartService;
+    private final EmailService emailService;
 
     @Transactional
     public OrderResponse placeOrder(User user, OrderRequest request) {
@@ -62,7 +64,15 @@ public class OrderService {
         orderRepository.save(order);
         cartService.clearCart(cart);
 
+        emailService.sendOrderConfirmationEmail(
+                user.getEmail(),
+                user.getFullName(),
+                order.getId(),
+                order.getTotalAmount().toString()
+        );
+
         return mapToResponse(order);
+
     }
 
     public List<OrderResponse> getMyOrders(User user) {
