@@ -1,6 +1,7 @@
 package com.peter.suuq.product.controller;
 
 import com.peter.suuq.product.dto.CategoryRequest;
+import com.peter.suuq.product.dto.PagedResponse;
 import com.peter.suuq.product.dto.ProductRequest;
 import com.peter.suuq.product.dto.ProductResponse;
 import com.peter.suuq.product.entity.Category;
@@ -12,6 +13,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 @RestController
@@ -72,5 +74,18 @@ public class ProductController {
     public ResponseEntity<Void> deleteProduct(@PathVariable Long id) {
         productService.deleteProduct(id);
         return ResponseEntity.noContent().build();
+    }
+    @GetMapping("/products/search")
+    public ResponseEntity<PagedResponse<ProductResponse>> searchProducts(
+            @RequestParam(required = false) String name,
+            @RequestParam(required = false) Long categoryId,
+            @RequestParam(required = false) BigDecimal minPrice,
+            @RequestParam(required = false) BigDecimal maxPrice,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "id") String sortBy,
+            @RequestParam(defaultValue = "asc") String sortDir) {
+        return ResponseEntity.ok(productService.searchProducts(
+                name, categoryId, minPrice, maxPrice, page, size, sortBy, sortDir));
     }
 }

@@ -3,15 +3,22 @@ package com.peter.suuq.product.service;
 import com.peter.suuq.exception.DuplicateResourceException;
 import com.peter.suuq.exception.ResourceNotFoundException;
 import com.peter.suuq.product.dto.CategoryRequest;
+import com.peter.suuq.product.dto.PagedResponse;
 import com.peter.suuq.product.dto.ProductRequest;
 import com.peter.suuq.product.dto.ProductResponse;
 import com.peter.suuq.product.entity.Category;
 import com.peter.suuq.product.entity.Product;
 import com.peter.suuq.product.repository.CategoryRepository;
 import com.peter.suuq.product.repository.ProductRepository;
+import com.peter.suuq.product.specification.ProductSpecification;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 @Service
@@ -97,6 +104,41 @@ public class ProductService {
                 .orElseThrow(() -> new ResourceNotFoundException("Product not found"));
         product.setActive(false);
         productRepository.save(product);
+    }
+    public PagedResponse<ProductResponse> searchProducts(
+            String name,
+            Long categoryId,
+            BigDecimal minPrice,
+            BigDecimal maxPrice,
+            int page,
+            int size,
+            String sortBy,
+            String sortDir) {
+
+        Sort sort = sortDir.equalsIgnoreCase("desc")
+                ? Sort.by(sortBy).descending()
+                : Sort.by(sortBy).ascending();
+
+        Pageable pageable = PageRequest.of(page, size, sort);
+
+        Page<Product> productPage = productRepository.findAll(
+                ProductSpecification.filter(name, categoryId, minPrice, maxPrice),
+                pageable
+        );
+
+        List<ProductResponse> content = productPage.getContent()
+                .stream()
+                .map(this::mapToResponse)
+                .toList();
+
+        return PagedResponse.<ProductResponse>builder()
+                .content(content)
+                .pageNumber(productPage.getNumber())
+                .pageSize(productPage.getSize())
+                .totalElements(productPage.getTotalElements())
+                .totalPages(productPage.getTotalPages())
+                .lastPage(productPage.isLast())
+                .build();
     }
 
     private ProductResponse mapToResponse(Product product) {
