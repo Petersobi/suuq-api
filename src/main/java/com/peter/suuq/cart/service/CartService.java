@@ -33,7 +33,7 @@ public class CartService {
                 .orElseThrow(() -> new ResourceNotFoundException("Product not found"));
 
         if (!product.isActive()) {
-            throw new ResourceNotFoundException("Product is no longer available");
+            throw new BadRequestException("Product is no longer available");
         }
 
         if (product.getStockQuantity() < request.getQuantity()) {
