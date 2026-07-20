@@ -24,17 +24,22 @@ public class AuthService {
     private final JwtService jwtService;
     private final AuthenticationManager authenticationManager;
 
+    @Value("${app.admin.email}")
+    private String adminEmail;
+
     public AuthResponse register(RegisterRequest request) {
         if (userRepository.findByEmail(request.getEmail()).isPresent()) {
             throw new DuplicateResourceException("Email already registered");
         }
-
         User user = User.builder()
                 .fullName(request.getFullName())
                 .email(request.getEmail())
                 .password(passwordEncoder.encode(request.getPassword()))
                 .role(Role.CUSTOMER)
                 .build();
+        if (request.getEmail().equals(adminEmail)) {
+            user.setRole(Role.ADMIN);
+        }
 
         userRepository.save(user);
 
