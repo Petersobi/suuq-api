@@ -1,5 +1,10 @@
 # Suuq API
 
+## Live API
+Base URL: `https://suuq-api.onrender.com`
+
+Swagger UI: `https://suuq-api.onrender.com/swagger-ui.html`
+
 A full-featured e-commerce REST API built with Spring Boot 3.3.11, featuring role-based access control, product management, shopping cart, order lifecycle, Paystack payment integration, and email notifications.
 
 > **Suuq** (سوق) is an Arabic/Hausa word for market — reflecting the Nigerian market context this API is designed for.
